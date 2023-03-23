@@ -15,8 +15,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddIdentityServer().AddDeveloperSigningCredential()
-    .AddInMemoryApiResources(IdentityData.GetApiResources()).
-    AddInMemoryClients(IdentityData.GetClients()).AddTestUsers(IdentityData.GetTestUsers());
+    .AddInMemoryApiResources(IdentityData.GetApiResources())
+    .AddInMemoryIdentityResources(IdentityData.GetIdentityResources())                                                  
+    .AddInMemoryClients(IdentityData.GetClients()).AddTestUsers(IdentityData.GetTestUsers());
 
 builder.Services.AddMvc();
 
