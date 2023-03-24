@@ -2,7 +2,11 @@ using IdentityServer4.Models;
 
 using IdentityServerPractice.Infrustructure;
 
+using Microsoft.AspNetCore.Connections;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +18,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddIdentityServer().AddDeveloperSigningCredential()
-    .AddInMemoryApiResources(IdentityData.GetApiResources())
-    .AddInMemoryIdentityResources(IdentityData.GetIdentityResources())                                                  
-    .AddInMemoryClients(IdentityData.GetClients()).AddTestUsers(IdentityData.GetTestUsers());
+string connectionString = builder.Configuration["ApplicationOptions:ConnectionString"];
+string assemblyName = typeof(Program).Assembly.GetName().Name;
 
+builder.Services.AddIdentityServer()
+    .AddConfigurationStore(opt =>
+    {
+        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(builder.Configuration["ApplicationOptions:ConnectionString"], opt => opt.MigrationsAssembly(assemblyName));
+    })
+    .AddOperationalStore(opt =>
+    {
+        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(builder.Configuration["ApplicationOptions:ConnectionString"], opt => opt.MigrationsAssembly(assemblyName));
+    })
+        //.AddInMemoryApiResources(IdentityData.GetApiResources())
+        //.AddInMemoryIdentityResources(IdentityData.GetIdentityResources())                                                  
+        //.AddInMemoryClients(IdentityData.GetClients()).AddTestUsers(IdentityData.GetTestUsers())
+        .AddDeveloperSigningCredential();
 builder.Services.AddMvc();
 
 var app = builder.Build();
