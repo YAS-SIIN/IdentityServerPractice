@@ -2,10 +2,12 @@ using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using IdentityServer4.Models;
 
+using IdentityServerPractice.IdentityEntity;
 using IdentityServerPractice.Infrustructure;
 
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,16 +17,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+string connectionString = builder.Configuration["ApplicationOptions:ConnectionString"];
+string assemblyName = typeof(Program).Assembly.GetName().Name;
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 
-string connectionString = builder.Configuration["ApplicationOptions:ConnectionString"];
-string assemblyName = typeof(Program).Assembly.GetName().Name;
+builder.Services.AddDbContext<AspNetIdentityDbContext>(opt => opt.UseSqlServer(connectionString));
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AspNetIdentityDbContext>();
+
+   //IdentityServer4.EntityFramework.DbContexts.ConfigurationDbContext
 builder.Services.AddIdentityServer()
+    .AddAspNetIdentity<IdentityUser>()
     .AddConfigurationStore(opt =>
     {
         opt.ConfigureDbContext = bldr => bldr.UseSqlServer(connectionString, opt => opt.MigrationsAssembly(assemblyName));
