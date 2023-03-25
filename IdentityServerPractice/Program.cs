@@ -83,7 +83,7 @@ void InitalIdentityData(IApplicationBuilder app)
     {
         foreach (var client in IdentityData.GetClients())
         {
-            dbContext.Clients.Add(client);
+            dbContext.Clients.Add(client.ToEntity());
         }
         dbContext.SaveChanges();
     }
@@ -92,7 +92,7 @@ void InitalIdentityData(IApplicationBuilder app)
     {
         foreach (var resource in IdentityData.GetIdentityResources())
         {
-            dbContext.IdentityResources.Add(resource);
+            dbContext.IdentityResources.Add(resource.ToEntity());
         }
         dbContext.SaveChanges();
     }
@@ -101,7 +101,7 @@ void InitalIdentityData(IApplicationBuilder app)
     {
         foreach (var resource in IdentityData.GetApiResources())
         {
-            dbContext.ApiResources.Add(resource);
+            dbContext.ApiResources.Add(resource.ToEntity());
         }
         dbContext.SaveChanges();
     }
