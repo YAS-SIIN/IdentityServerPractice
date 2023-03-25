@@ -1,8 +1,11 @@
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using IdentityServer4.Models;
 
 using IdentityServerPractice.Infrustructure;
 
 using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,11 +27,11 @@ string assemblyName = typeof(Program).Assembly.GetName().Name;
 builder.Services.AddIdentityServer()
     .AddConfigurationStore(opt =>
     {
-        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(builder.Configuration["ApplicationOptions:ConnectionString"], opt => opt.MigrationsAssembly(assemblyName));
+        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(connectionString, opt => opt.MigrationsAssembly(assemblyName));
     })
     .AddOperationalStore(opt =>
     {
-        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(builder.Configuration["ApplicationOptions:ConnectionString"], opt => opt.MigrationsAssembly(assemblyName));
+        opt.ConfigureDbContext = bldr => bldr.UseSqlServer(connectionString, opt => opt.MigrationsAssembly(assemblyName));
     })
         //.AddInMemoryApiResources(IdentityData.GetApiResources())
         //.AddInMemoryIdentityResources(IdentityData.GetIdentityResources())                                                  
@@ -37,6 +40,8 @@ builder.Services.AddIdentityServer()
 builder.Services.AddMvc();
 
 var app = builder.Build();
+
+InitalIdentityData(app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -61,3 +66,38 @@ app.UseIdentityServer();
 app.Run();
 
 
+void InitalIdentityData(IApplicationBuilder app)
+{
+    using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+    {
+    ConfigurationDbContext dbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+    if (!dbContext.Clients.Any())
+    {
+        foreach (var client in IdentityData.GetClients())
+        {
+            dbContext.Clients.Add(client);
+        }
+        dbContext.SaveChanges();
+    }
+
+    if (!dbContext.IdentityResources.Any())
+    {
+        foreach (var resource in IdentityData.GetIdentityResources())
+        {
+            dbContext.IdentityResources.Add(resource);
+        }
+        dbContext.SaveChanges();
+    }
+
+    if (!dbContext.ApiResources.Any())
+    {
+        foreach (var resource in IdentityData.GetApiResources())
+        {
+            dbContext.ApiResources.Add(resource);
+        }
+        dbContext.SaveChanges();
+    }
+}
+    
+  
+}
